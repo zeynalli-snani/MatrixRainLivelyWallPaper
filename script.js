@@ -1,25 +1,24 @@
-
 const config = {
   fontSize: 16,
-  color: '#00FF00',
+  color: "#00FF00",
   speed: 1,
   trailOpacity: 0.05,
-  characters: 'アァイイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-  backgroundColor: 'black',
+  characters:
+    "アァイイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  backgroundColor: "black",
 };
 
-const canvas = document.getElementById('matrix');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
 
 let columns;
 let drops;
 let bursts = [];
-const chars = config.characters.split('');
+const chars = config.characters.split("");
 
 let mouseX = -1;
 let mouseY = -1;
 let swirlAngle = 0; // radian
-
 
 function initMatrix() {
   canvas.width = window.innerWidth;
@@ -45,20 +44,22 @@ function drawMatrixRain() {
 
     const rawDX = rawX - cx;
     const rawDY = rawY - cy;
-    const radius = Math.sqrt(rawDX * rawDX + rawDY * rawDY);
-    const angle = Math.atan2(rawDY, rawDX) + swirlAngle;
 
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
+    const cosA = Math.cos(swirlAngle);
+    const sinA = Math.sin(swirlAngle);
+
+    const x = cx + (rawDX * cosA - rawDY * sinA);
+    const y = cy + (rawDX * sinA + rawDY * cosA);
 
     swirlAngle *= 0.9999;
 
     const mouseDX = x - mouseX;
     const mouseDY = y - mouseY;
-    const distance = Math.sqrt(mouseDX * mouseDX + mouseDY * mouseDY);
+    const distanceSq = mouseDX * mouseDX + mouseDY * mouseDY;
 
-    if (distance < config.fontSize * 4) {
-      ctx.fillStyle = '#FFFFFF'; // white glow 
+    const threshold = config.fontSize * 4;
+    if (distanceSq < threshold * threshold) {
+      ctx.fillStyle = "#FFFFFF"; // white glow
       ctx.font = `${config.fontSize + 4}px monospace`;
     } else {
       ctx.fillStyle = config.color;
@@ -70,9 +71,9 @@ function drawMatrixRain() {
     if (y > canvas.height && Math.random() > 0.975) {
       drops[i] = 0;
     }
-      drops[i] += config.speed;
-    }
-  bursts = bursts.filter(burst => burst.alpha > 0.01);
+    drops[i] += config.speed;
+  }
+  bursts = bursts.filter((burst) => burst.alpha > 0.01);
 
   for (const burst of bursts) {
     for (let i = 0; i < 30; i++) {
@@ -92,83 +93,79 @@ function drawMatrixRain() {
 
     burst.radius += 10;
     burst.alpha *= 0.95;
-  }  
-}
-
-function animate() {
-    drawMatrixRain();
-    requestAnimationFrame(animate);
-}
-
-
-function livelyPropertyListener(name, val) {
-  console.log(`livelyPropertyListener: ${name} = ${val}`);  
-
-  switch (name) {
-    case 'fontSize':
-        config.fontSize = val;
-        ctx.font = `${config.fontSize}px monospace`;
-        initMatrix();
-        break;
-    case 'color':
-        config.color = val;
-      break;
-    case 'speed':
-        config.speed = val;
-      break;
-    case 'trailOpacity':
-        config.trailOpacity = val;
-      break;
-    case 'characters':
-        config.characters = val.length > 0 ? val : '01';
-        chars.length = 0;
-        chars.push(...config.characters.split('')); 
-        break;
   }
 }
 
+function animate() {
+  drawMatrixRain();
+  requestAnimationFrame(animate);
+}
 
+function livelyPropertyListener(name, val) {
+  console.log(`livelyPropertyListener: ${name} = ${val}`);
 
-window.addEventListener('resize', () => {
+  switch (name) {
+    case "fontSize":
+      config.fontSize = val;
+      ctx.font = `${config.fontSize}px monospace`;
+      initMatrix();
+      break;
+    case "color":
+      config.color = val;
+      break;
+    case "speed":
+      config.speed = val;
+      break;
+    case "trailOpacity":
+      config.trailOpacity = val;
+      break;
+    case "characters":
+      config.characters = val.length > 0 ? val : "01";
+      chars.length = 0;
+      chars.push(...config.characters.split(""));
+      break;
+  }
+}
+
+window.addEventListener("resize", () => {
   initMatrix();
 });
 
-window.addEventListener('mousemove', (e) => {
+window.addEventListener("mousemove", (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
 });
 
-window.addEventListener('click', (e) => {
+window.addEventListener("click", (e) => {
   bursts.push({
     x: e.clientX,
     y: e.clientY,
     radius: 0,
     maxRadius: 100,
-    alpha: 1.0
+    alpha: 1.0,
   });
 });
 
-window.addEventListener('keydown', (e) => {
+window.addEventListener("keydown", (e) => {
   const x = Math.random() * canvas.width;
-  const y = canvas.height - config.fontSize * 2; 
+  const y = canvas.height - config.fontSize * 2;
   bursts.push({
     x,
     y,
     radius: 0,
     alpha: 1.0,
-    color: '#FF00FF' 
+    color: "#FF00FF",
   });
 });
 
-window.addEventListener('wheel', (e) => {
-  swirlAngle += e.deltaY * 0.001; 
+window.addEventListener("wheel", (e) => {
+  swirlAngle += e.deltaY * 0.001;
 });
 
-window.addEventListener('mouseleave', () => {
+window.addEventListener("mouseleave", () => {
   mouseX = -1;
   mouseY = -1;
 });
-
 
 initMatrix();
 animate();
